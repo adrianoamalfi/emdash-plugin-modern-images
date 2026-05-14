@@ -2,7 +2,7 @@
 import { SUPPORTED_FORMATS, WIDTH_CANDIDATES, DEFAULT_QUALITY, FORMAT_MAP } from "../lib/constants";
 
 export interface Props {
-  image: { src?: string; alt?: string };
+  image: { id?: string; src?: string; alt?: string; meta?: { storageKey?: string } };
   widths?: number[];
   sizes?: string;
   class?: string;
@@ -23,33 +23,46 @@ const {
   formatQuality = DEFAULT_QUALITY,
 } = Astro.props;
 
-const isExternal = image.src?.startsWith("http://") || image.src?.startsWith("https://");
-const mediaMatch = image.src?.match(/\/_emdash\/(?:api\/)?media\/file\/([^?]+)/);
-const storageKey = isExternal ? null : (mediaMatch?.[1] || null);
+const isExternal = typeof image.src === "string" && (image.src.startsWith("http://") || image.src.startsWith("https://"));
 
-if (isExternal || !storageKey) {
-  <img src={image.src || ""} alt={image.alt || ""} />
-} else {
-  const mediaBase = `/_emdash/api/media/file/${storageKey}`;
-  const srcset = (fmt: string) =>
-    widths.map((w) => `${mediaBase}?format=${fmt}&w=${w}&q=${formatQuality} ${w}w`).join(",\n");
+let storageKey = "";
+if (!isExternal) {
+  storageKey = image.meta?.storageKey || image.id || "";
+  if (!storageKey && image.src) {
+    const m = image.src.match(/\/_emdash\/(?:api\/)?media\/file\/([^?]+)/);
+    storageKey = m?.[1] || "";
+  }
+}
 
-  const formats = ["avif", "webp"] as const;
+const showPicture = !isExternal && storageKey.length > 0;
+const imgAlt = image.alt || "";
+let avifSrcset = "";
+let webpSrcset = "";
+let preloadHref = "";
+let preloadSrcset = "";
 
-  {preload && (
-    <link
-      rel="preload"
-      as="image"
-      href={`${mediaBase}?format=avif&w=960&q=${formatQuality}`}
-      imagesrcset={srcset("avif")}
-      imagesizes={sizes}
-      type="image/avif"
-    />
-  )}
-  <picture>
-    {formats.map((fmt) => (
-      <source srcset={srcset(fmt)} sizes={sizes} type={FORMAT_MAP[fmt].mime} />
-    ))}
-    <img src={mediaBase} alt={image.alt || ""} loading={loading} decoding={decoding} class={className} />
-  </picture>
+if (showPicture) {
+  const base = `/_emdash/api/media/file/${storageKey}`;
+  avifSrcset = widths.map((w) => `${base}?format=avif&w=${w}&q=${formatQuality} ${w}w`).join(", ");
+  webpSrcset = widths.map((w) => `${base}?format=webp&w=${w}&q=${formatQuality} ${w}w`).join(", ");
+  preloadHref = `${base}?format=avif&w=960&q=${formatQuality}`;
+  preloadSrcset = avifSrcset;
+}
+---
+
+{
+  preload && showPicture && (
+    <link rel="preload" as="image" href={preloadHref} imagesrcset={preloadSrcset} imagesizes={sizes} type="image/avif" />
+  )
+}
+{
+  showPicture ? (
+    <picture>
+      <source srcset={avifSrcset} sizes={sizes} type="image/avif" />
+      <source srcset={webpSrcset} sizes={sizes} type="image/webp" />
+      <img src={`/_emdash/api/media/file/${storageKey}`} alt={imgAlt} loading={loading} decoding={decoding} class={className} />
+    </picture>
+  ) : (
+    <img src={image.src || ""} alt={imgAlt} />
+  )
 }
