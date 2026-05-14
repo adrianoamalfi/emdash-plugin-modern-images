@@ -1,6 +1,6 @@
 {
   "name": "emdash-plugin-modern-images",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Converts images to modern formats (WebP, AVIF) with responsive srcset, disk caching, and LCP preload support",
   "type": "module",
   "license": "MIT",

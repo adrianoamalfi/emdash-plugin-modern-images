@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/adrianoamalfi/emdash-plugin-modern-images/compare/v1.2.1...v1.2.2) (2026-05-14)
+
+
+### Bug Fixes
+
+* ModernImage uses image.meta.storageKey or image.id instead of image.src ([39d6995](https://github.com/adrianoamalfi/emdash-plugin-modern-images/commit/39d69950f9776b725f8dfd4039b8bc6bc3bdb1d7))
+
 ## [1.2.1](https://github.com/adrianoamalfi/emdash-plugin-modern-images/compare/v1.2.0...v1.2.1) (2026-05-14)
 
 
