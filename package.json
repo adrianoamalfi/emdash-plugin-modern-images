@@ -1,0 +1,60 @@
+{
+  "name": "emdash-modern-images",
+  "version": "0.1.0",
+  "description": "Automatic image optimization for EmDash CMS — converts uploaded images to WebP/AVIF with responsive breakpoints and admin-controlled quality.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Adriano Amalfi <adrianoamalfi@gmail.com> (https://adrianoamalfi.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adrianoamalfi/emdash-modern-images"
+  },
+  "keywords": [
+    "emdash",
+    "emdash-plugin",
+    "images",
+    "webp",
+    "avif",
+    "optimization",
+    "responsive",
+    "cms"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./sandbox": "./src/sandbox-entry.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "version": "node -p \"require('./package.json').version\""
+  },
+  "files": ["src"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "release": {
+    "branches": ["main"],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      "@semantic-release/git"
+    ]
+  },
+  "dependencies": {
+    "sharp": "^0.34.0"
+  },
+  "peerDependencies": {
+    "emdash": "^0.12.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^25.0.3",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.6"
+  }
+}

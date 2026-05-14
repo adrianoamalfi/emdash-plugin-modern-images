@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx tsc --noEmit
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx vitest run
+
+  validate-package:
+    name: Validate package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: |
+          node -e "
+            const p = require('./package.json');
+            const assert = require('assert');
+            assert(p.name, 'missing name');
+            assert(p.version, 'missing version');
+            assert(p.peerDependencies?.emdash, 'missing emdash peer dep');
+            assert(p.dependencies?.sharp, 'missing sharp dep');
+            assert(p.exports?.['.'], 'missing main export');
+            assert(p.exports?.['./sandbox'], 'missing sandbox export');
+            console.log('package.json valid');
+          "
