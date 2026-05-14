@@ -13,7 +13,7 @@ const PLUGIN_IMPORT = 'import { modernImagesPlugin } from "emdash-plugin-modern-
 const PLUGIN_ENTRY = "modernImagesPlugin()";
 
 const rl = createInterface({ input: process.stdin, output: process.stdout });
-const ask = (q: string) => new Promise<string>((r) => rl.question(q, r));
+const ask = (q) => new Promise((r) => rl.question(q, r));
 
 async function main() {
   console.log("\n  \x1b[1m📸 emdash-plugin-modern-images — setup\x1b[0m\n");
