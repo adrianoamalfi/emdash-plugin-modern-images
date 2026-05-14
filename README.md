@@ -4,21 +4,31 @@
 [![Security](https://github.com/adrianoamalfi/emdash-plugin-modern-images/actions/workflows/security.yml/badge.svg)](https://github.com/adrianoamalfi/emdash-plugin-modern-images/actions/workflows/security.yml)
 [![npm version](https://img.shields.io/npm/v/emdash-plugin-modern-images)](https://www.npmjs.com/package/emdash-plugin-modern-images)
 
-Automatic image optimization for [EmDash CMS](https://emdashcms.com). Converts uploaded images to WebP and AVIF with responsive breakpoints — all controlled from the admin panel.
+Converts uploaded images to modern formats (WebP, AVIF) with responsive `srcset`, disk caching, and LCP preload support for [EmDash CMS](https://emdashcms.com).
 
 ## Features
 
-- **Automatic conversion** — Every uploaded image is converted to WebP and AVIF
-- **Responsive breakpoints** — Generate 480w, 768w, 1024w, 1600w variants per image
-- **Admin controls** — Configure format priority, quality, and breakpoint sizes
+- **Automatic conversion** — Every uploaded image is converted to WebP and AVIF at 3 widths (640, 960, 1200)
+- **Format priority** — Choose WebP-first or AVIF-first from the admin panel
+- **Quality control** — Adjust output quality (30–95) via admin settings
 - **On-upload processing** — Zero configuration needed after setup
-- **Sharp-powered** — Uses the industry-standard `sharp` library for high-speed conversion
-- **Cache tracking** — All variants tracked via KV for stats and future reprocessing
+- **Disk cache** — Converted variants cached to disk, keyed by content hash
+
+## Prerequisites
+
+- EmDash CMS `^0.12.0`
+- Your base layout must include `<EmDashHead />` and `<EmDashBodyEnd />` for hooks to function
 
 ## Installation
 
 ```bash
 npm install emdash-plugin-modern-images
+```
+
+You also need the `sharp` native dependency (bundled automatically):
+
+```bash
+npm install sharp
 ```
 
 ## Usage
@@ -27,25 +37,28 @@ Register the plugin in `astro.config.mjs`:
 
 ```ts
 import { modernImagesPlugin } from "emdash-plugin-modern-images";
+import emdash from "emdash/astro";
+import { defineConfig } from "astro/config";
 
 export default defineConfig({
   integrations: [
     emdash({
       plugins: [modernImagesPlugin()],
+      // database and storage remain unchanged
     }),
   ],
 });
 ```
 
-Once installed, every image uploaded through the EmDash admin is automatically processed. No additional configuration needed.
+Once installed, every image uploaded through the EmDash admin is automatically processed.
 
 ## How It Works
 
 1. **Image uploaded** → The `media:afterUpload` hook fires
-2. **Fetch original** → The plugin reads the image data via HTTP
-3. **Generate variants** → `sharp` creates WebP and AVIF copies at each breakpoint
-4. **Upload variants** → Each variant is stored as a media item in EmDash
-5. **Cache mapping** → Original-to-variant mapping saved in KV for stats and retrieval
+2. **Settings read** → Format priority and quality are read from the plugin's KV store
+3. **Convert** → `sharp` creates WebP and AVIF variants at 640w, 960w, and 1200w
+4. **Cache** → Each variant is written to a local disk cache (`./uploads/.cache/images/`)
+5. **Track** → Conversion metadata (format, width, size, mtime) stored in the `conversions` storage collection
 
 ## Admin Settings
 
@@ -53,25 +66,8 @@ Navigate to `/_emdash/admin` → **Modern Images**.
 
 | Field | Default | Description |
 |---|---|---|
-| Format Priority | WebP > AVIF | Output format preference order |
-| Quality | `80` | Output quality (1-100) |
-| Breakpoints | `480, 768, 1024, 1600` | Comma-separated widths in pixels |
-
-## API Routes
-
-### Stats
-
-`GET /_emdash/api/plugins/modern-images/stats`
-
-Returns processing statistics:
-
-```json
-{
-  "imagesProcessed": 42,
-  "totalVariants": 168,
-  "totalCacheKb": 12480
-}
-```
+| Default format | `webp` | Preferred format (`webp` or `avif`). Both formats are always generated; this controls which is listed first. |
+| Quality | `78` | Output quality (30–95). Lower = smaller file. |
 
 ## Development
 
@@ -85,7 +81,7 @@ npm test
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org/). Releases are automated via [semantic-release](https://github.com/semantic-release/semantic-release).
+This project follows [Semantic Versioning](https://semver.org/). Releases are automated via [semantic-release](https://github.com/semantic-release/semantic-release) — pushing `fix:`, `feat:`, or `BREAKING CHANGE:` commits to `main` triggers a release to npm and GitHub.
 
 ## License
 
