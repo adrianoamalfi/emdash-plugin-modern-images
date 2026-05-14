@@ -1,8 +1,8 @@
-# emdash-modern-images
+# emdash-plugin-modern-images
 
-[![CI](https://github.com/adrianoamalfi/emdash-modern-images/actions/workflows/ci.yml/badge.svg)](https://github.com/adrianoamalfi/emdash-modern-images/actions/workflows/ci.yml)
-[![Security](https://github.com/adrianoamalfi/emdash-modern-images/actions/workflows/security.yml/badge.svg)](https://github.com/adrianoamalfi/emdash-modern-images/actions/workflows/security.yml)
-[![npm version](https://img.shields.io/npm/v/emdash-modern-images)](https://www.npmjs.com/package/emdash-modern-images)
+[![CI](https://github.com/adrianoamalfi/emdash-plugin-modern-images/actions/workflows/ci.yml/badge.svg)](https://github.com/adrianoamalfi/emdash-plugin-modern-images/actions/workflows/ci.yml)
+[![Security](https://github.com/adrianoamalfi/emdash-plugin-modern-images/actions/workflows/security.yml/badge.svg)](https://github.com/adrianoamalfi/emdash-plugin-modern-images/actions/workflows/security.yml)
+[![npm version](https://img.shields.io/npm/v/emdash-plugin-modern-images)](https://www.npmjs.com/package/emdash-plugin-modern-images)
 
 Automatic image optimization for [EmDash CMS](https://emdashcms.com). Converts uploaded images to WebP and AVIF with responsive breakpoints — all controlled from the admin panel.
 
@@ -18,7 +18,7 @@ Automatic image optimization for [EmDash CMS](https://emdashcms.com). Converts u
 ## Installation
 
 ```bash
-npm install emdash-modern-images
+npm install emdash-plugin-modern-images
 ```
 
 ## Usage
@@ -26,7 +26,7 @@ npm install emdash-modern-images
 Register the plugin in `astro.config.mjs`:
 
 ```ts
-import { modernImagesPlugin } from "emdash-modern-images";
+import { modernImagesPlugin } from "emdash-plugin-modern-images";
 
 export default defineConfig({
   integrations: [
@@ -76,8 +76,8 @@ Returns processing statistics:
 ## Development
 
 ```bash
-git clone https://github.com/adrianoamalfi/emdash-modern-images.git
-cd emdash-modern-images
+git clone https://github.com/adrianoamalfi/emdash-plugin-modern-images.git
+cd emdash-plugin-modern-images
 npm install
 npm run typecheck
 npm test

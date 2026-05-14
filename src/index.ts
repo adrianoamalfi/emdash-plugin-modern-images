@@ -5,7 +5,7 @@ export function modernImagesPlugin(): PluginDescriptor {
     id: "modern-images",
     version: "0.1.0",
     format: "standard",
-    entrypoint: "emdash-modern-images/sandbox",
+    entrypoint: "emdash-plugin-modern-images/sandbox",
     options: {},
     capabilities: [
       "media:read",

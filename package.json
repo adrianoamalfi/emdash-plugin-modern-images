@@ -1,5 +1,5 @@
 {
-  "name": "emdash-modern-images",
+  "name": "emdash-plugin-modern-images",
   "version": "0.1.0",
   "description": "Automatic image optimization for EmDash CMS — converts uploaded images to WebP/AVIF with responsive breakpoints and admin-controlled quality.",
   "type": "module",
@@ -7,7 +7,7 @@
   "author": "Adriano Amalfi <adrianoamalfi@gmail.com> (https://adrianoamalfi.com)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adrianoamalfi/emdash-modern-images"
+    "url": "https://github.com/adrianoamalfi/emdash-plugin-modern-images"
   },
   "keywords": [
     "emdash",
