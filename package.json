@@ -22,7 +22,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./sandbox": "./src/sandbox-entry.ts",
-    "./astro/CmsImage": "./src/astro/CmsImage.astro"
+    "./astro/ModernImage": "./src/astro/ModernImage.astro",
+    "./astro/middleware": "./src/astro/middleware.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

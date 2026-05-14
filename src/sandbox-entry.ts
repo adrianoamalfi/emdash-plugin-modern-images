@@ -97,6 +97,7 @@ export default definePlugin({
         return { blocks: dashboardBlocks(await getSettings(ctx)) };
       },
     },
+
   },
 });
 

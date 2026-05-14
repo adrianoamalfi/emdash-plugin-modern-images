@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 
 export const CACHE_DIR = process.env.IMAGE_CACHE_DIR || "./uploads/.cache/images";
 
@@ -12,26 +11,8 @@ export interface CacheKey {
   mtimeMs: number;
 }
 
-function cachePath(key: CacheKey): string {
-  const hash = crypto
-    .createHash("sha256")
-    .update(`${key.storageKey}:${key.width}:${key.format}:${key.quality}:${key.mtimeMs}`)
-    .digest("hex");
-  return path.resolve(CACHE_DIR, `${hash}.${key.format}`);
-}
-
-export function computeETag(data: {
-  storageKey: string;
-  width: number;
-  format: string;
-  quality: number;
-  mtimeMs: number;
-  size: number;
-}): string {
-  return crypto
-    .createHash("sha256")
-    .update(`${data.storageKey}:${data.width}:${data.format}:${data.quality}:${data.mtimeMs}:${data.size}`)
-    .digest("hex");
+function cachePath(key: Pick<CacheKey, "storageKey" | "width" | "format">): string {
+  return path.resolve(CACHE_DIR, key.storageKey, `${key.width}.${key.format}`);
 }
 
 export async function saveToCache(result: {
@@ -60,7 +41,7 @@ const MIME_MAP: Record<string, string> = {
   jpeg: "image/jpeg",
 };
 
-export function readFromCache(opts: CacheKey): CachedResult | null {
+export function readFromCache(opts: Pick<CacheKey, "storageKey" | "width" | "format">): CachedResult | null {
   const filePath = cachePath(opts);
   try {
     const buffer = fs.readFileSync(filePath);
@@ -69,3 +50,5 @@ export function readFromCache(opts: CacheKey): CachedResult | null {
     return null;
   }
 }
+
+
