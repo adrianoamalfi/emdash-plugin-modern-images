@@ -1,70 +1,23 @@
 import { definePlugin } from "emdash";
 import type { PluginContext } from "emdash";
-import { convertImage, SUPPORTED_FORMATS } from "./lib/convert";
-import { saveToCache } from "./lib/cache";
+import {
+  DEFAULT_SETTINGS,
+  OUTPUT_FORMATS,
+  SETTINGS_KEY,
+  clampQuality,
+  normalizeSettings,
+  type ModernImagesSettings,
+} from "./lib/settings";
 
-interface Settings {
-  defaultQuality: number;
-  defaultFormat: string;
-}
-
-const DEFAULT_SETTINGS: Settings = {
-  defaultQuality: 78,
-  defaultFormat: "webp",
-};
-
-async function getSettings(ctx: PluginContext): Promise<Settings> {
-  const raw = await ctx.kv.get<Record<string, unknown>>("settings:all");
-  return {
-    defaultQuality: typeof raw?.defaultQuality === "number" ? raw.defaultQuality : DEFAULT_SETTINGS.defaultQuality,
-    defaultFormat: typeof raw?.defaultFormat === "string" ? raw.defaultFormat : DEFAULT_SETTINGS.defaultFormat,
-  };
-}
-
-interface ConversionRecord {
-  storageKey: string;
-  format: string;
-  width: number;
-  size: number;
-  mtimeMs: number;
+async function getSettings(ctx: PluginContext): Promise<ModernImagesSettings> {
+  return normalizeSettings(await ctx.kv.get<Record<string, unknown>>(SETTINGS_KEY));
 }
 
 export default definePlugin({
   hooks: {
-    "media:afterUpload": {
-      handler: async (event: any, ctx: PluginContext) => {
-        const { media } = event;
-        if (!media?.mimeType?.startsWith("image/")) return;
-
-        const settings = await getSettings(ctx);
-        const storageKey = media.id;
-        ctx.log.info(`ModernImages: converting ${media.filename}`);
-
-        const widths = [640, 960, 1200];
-        const formats = settings.defaultFormat === "avif" ? ["avif", "webp"] as const : ["webp", "avif"] as const;
-        for (const format of formats) {
-          for (const width of widths) {
-            try {
-              const result = await convertImage({ storageKey, format, width, quality: settings.defaultQuality });
-              await saveToCache(result);
-              await ctx.storage.conversions.put(`${storageKey}:${format}:${width}`, {
-                storageKey,
-                format,
-                width,
-                size: result.size,
-                mtimeMs: result.mtimeMs,
-              } satisfies ConversionRecord);
-            } catch (err) {
-              ctx.log.warn(`  Failed ${format} ${width}w for ${media.filename}: ${(err as Error).message}`);
-            }
-          }
-        }
-      },
-    },
-
     "plugin:install": {
       handler: async (_event: unknown, ctx: PluginContext) => {
-        await ctx.kv.set("settings:all", DEFAULT_SETTINGS);
+        await ctx.kv.set(SETTINGS_KEY, DEFAULT_SETTINGS);
         ctx.log.info("ModernImages plugin installed");
       },
     },
@@ -80,14 +33,14 @@ export default definePlugin({
           try {
             const v = interaction.values ?? {};
             const rawFormat = v.default_format || "webp";
-            if (!SUPPORTED_FORMATS.includes(rawFormat)) {
-              throw new Error(`Unsupported format "${rawFormat}". Use one of: ${SUPPORTED_FORMATS.join(", ")}`);
+            if (!OUTPUT_FORMATS.includes(rawFormat)) {
+              throw new Error(`Unsupported format "${rawFormat}". Use one of: ${OUTPUT_FORMATS.join(", ")}`);
             }
-            const updated: Settings = {
-              defaultQuality: Math.max(30, Math.min(95, parseInt(v.default_quality) || 78)),
+            const updated: ModernImagesSettings = {
+              defaultQuality: clampQuality(v.default_quality),
               defaultFormat: rawFormat,
             };
-            await ctx.kv.set("settings:all", updated);
+            await ctx.kv.set(SETTINGS_KEY, updated);
             return { blocks: dashboardBlocks(updated), toast: { message: "Settings saved", type: "success" } };
           } catch {
             return { blocks: dashboardBlocks(await getSettings(ctx)), toast: { message: "Failed to save settings", type: "error" } };
@@ -101,7 +54,7 @@ export default definePlugin({
   },
 });
 
-function dashboardBlocks(settings: Settings) {
+function dashboardBlocks(settings: ModernImagesSettings) {
   return [
     { type: "header", text: "Modern Images" },
     { type: "context", text: "Converts uploaded images to WebP/AVIF." },

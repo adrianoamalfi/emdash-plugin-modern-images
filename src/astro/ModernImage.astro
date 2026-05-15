@@ -1,5 +1,5 @@
 ---
-import { SUPPORTED_FORMATS, WIDTH_CANDIDATES, DEFAULT_QUALITY, FORMAT_MAP } from "../lib/constants";
+import { DEFAULT_QUALITY, QUALITY_RANGE, WIDTH_RANGE } from "../lib/constants";
 
 export interface Props {
   image: { id?: string; src?: string; alt?: string; meta?: { storageKey?: string } };
@@ -30,22 +30,34 @@ if (!isExternal) {
   storageKey = image.meta?.storageKey || image.id || "";
   if (!storageKey && image.src) {
     const m = image.src.match(/\/_emdash\/(?:api\/)?media\/file\/([^?]+)/);
-    storageKey = m?.[1] || "";
+    try {
+      storageKey = m?.[1] ? decodeURIComponent(m[1]) : "";
+    } catch {
+      storageKey = m?.[1] || "";
+    }
   }
 }
 
 const showPicture = !isExternal && storageKey.length > 0;
 const imgAlt = image.alt || "";
+const normalizedQuality = Math.max(QUALITY_RANGE.min, Math.min(QUALITY_RANGE.max, Number(formatQuality) || DEFAULT_QUALITY));
+const requestedWidths = [...new Set(widths)]
+  .map((width) => Number(width))
+  .filter((width) => Number.isFinite(width))
+  .map((width) => Math.max(WIDTH_RANGE.min, Math.min(WIDTH_RANGE.max, Math.round(width))))
+  .sort((a, b) => a - b);
+const normalizedWidths = requestedWidths.length > 0 ? requestedWidths : [960];
 let avifSrcset = "";
 let webpSrcset = "";
 let preloadHref = "";
 let preloadSrcset = "";
 
 if (showPicture) {
-  const base = `/_emdash/api/media/file/${storageKey}`;
-  avifSrcset = widths.map((w) => `${base}?format=avif&w=${w}&q=${formatQuality} ${w}w`).join(", ");
-  webpSrcset = widths.map((w) => `${base}?format=webp&w=${w}&q=${formatQuality} ${w}w`).join(", ");
-  preloadHref = `${base}?format=avif&w=960&q=${formatQuality}`;
+  const base = `/_emdash/api/media/file/${encodeURIComponent(storageKey)}`;
+  avifSrcset = normalizedWidths.map((w) => `${base}?format=avif&w=${w}&q=${normalizedQuality} ${w}w`).join(", ");
+  webpSrcset = normalizedWidths.map((w) => `${base}?format=webp&w=${w}&q=${normalizedQuality} ${w}w`).join(", ");
+  const preloadWidth = normalizedWidths.find((width) => width >= 960) ?? normalizedWidths.at(-1) ?? 960;
+  preloadHref = `${base}?format=avif&w=${preloadWidth}&q=${normalizedQuality}`;
   preloadSrcset = avifSrcset;
 }
 ---
@@ -60,9 +72,9 @@ if (showPicture) {
     <picture>
       <source srcset={avifSrcset} sizes={sizes} type="image/avif" />
       <source srcset={webpSrcset} sizes={sizes} type="image/webp" />
-      <img src={`/_emdash/api/media/file/${storageKey}`} alt={imgAlt} loading={loading} decoding={decoding} class={className} />
+      <img src={`/_emdash/api/media/file/${encodeURIComponent(storageKey)}`} alt={imgAlt} loading={loading} decoding={decoding} class={className} />
     </picture>
   ) : (
-    <img src={image.src || ""} alt={imgAlt} />
+    <img src={image.src || ""} alt={imgAlt} loading={loading} decoding={decoding} class={className} />
   )
 }

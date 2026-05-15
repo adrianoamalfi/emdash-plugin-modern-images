@@ -18,17 +18,27 @@ export interface ConvertResult {
   storageKey: string;
 }
 
+function isInsideDir(parent: string, child: string): boolean {
+  const relative = path.relative(parent, child);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function resolveUploadPath(...parts: string[]): string | null {
+  const root = path.resolve(UPLOADS_DIR);
+  const resolved = path.resolve(root, ...parts);
+  return isInsideDir(root, resolved) ? resolved : null;
+}
+
 function findSourceFile(storageKey: string): string | null {
-  const resolved = path.resolve(UPLOADS_DIR, storageKey);
-  if (!resolved.startsWith(path.resolve(UPLOADS_DIR))) {
-    return null;
-  }
-  if (fs.existsSync(resolved)) return resolved;
+  const resolved = resolveUploadPath(storageKey);
+  if (!resolved) return null;
+  if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) return resolved;
   if (!fs.existsSync(UPLOADS_DIR)) return null;
   const entries = fs.readdirSync(UPLOADS_DIR);
   for (const entry of entries) {
     if (entry.startsWith(storageKey + ".")) {
-      return path.resolve(UPLOADS_DIR, entry);
+      const candidate = resolveUploadPath(entry);
+      if (candidate && fs.statSync(candidate).isFile()) return candidate;
     }
   }
   return null;
@@ -48,7 +58,10 @@ export async function convertImage(opts: {
   }
 
   const stat = fs.statSync(sourcePath);
-  const target = FORMAT_MAP[format] || FORMAT_MAP.webp;
+  const target = FORMAT_MAP[format];
+  if (!target) {
+    throw new Error(`Unsupported image format: ${format}`);
+  }
 
   const buffer = await sharp(sourcePath)
     .rotate()
@@ -67,5 +80,4 @@ export async function convertImage(opts: {
     storageKey,
   };
 }
-
 
