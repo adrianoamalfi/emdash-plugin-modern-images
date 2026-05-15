@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/adrianoamalfi/emdash-plugin-modern-images/compare/v1.2.2...v1.3.0) (2026-05-15)
+
+
+### Features
+
+* enhance image processing and settings management with improved caching and quality control ([eaa0b2b](https://github.com/adrianoamalfi/emdash-plugin-modern-images/commit/eaa0b2bea5b5451c621bc4c0c4ceb62b6c8ddfd0))
+
 ## [1.2.2](https://github.com/adrianoamalfi/emdash-plugin-modern-images/compare/v1.2.1...v1.2.2) (2026-05-14)
 
 
