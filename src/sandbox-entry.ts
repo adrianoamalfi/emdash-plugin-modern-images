@@ -1,5 +1,4 @@
-import { definePlugin } from "emdash";
-import type { PluginContext } from "emdash";
+import type { SandboxedPlugin, PluginContext } from "emdash/plugin";
 import {
   DEFAULT_SETTINGS,
   OUTPUT_FORMATS,
@@ -13,10 +12,10 @@ async function getSettings(ctx: PluginContext): Promise<ModernImagesSettings> {
   return normalizeSettings(await ctx.kv.get<Record<string, unknown>>(SETTINGS_KEY));
 }
 
-export default definePlugin({
+export default {
   hooks: {
     "plugin:install": {
-      handler: async (_event: unknown, ctx: PluginContext) => {
+      handler: async (_event, ctx) => {
         await ctx.kv.set(SETTINGS_KEY, DEFAULT_SETTINGS);
         ctx.log.info("ModernImages plugin installed");
       },
@@ -25,7 +24,7 @@ export default definePlugin({
 
   routes: {
     admin: {
-      handler: async (routeCtx: { input: Record<string, unknown>; request: Request }, ctx: PluginContext) => {
+      handler: async (routeCtx, ctx) => {
         const interaction = routeCtx.input as Record<string, any>;
         const type = interaction?.type ?? "";
 
@@ -52,7 +51,7 @@ export default definePlugin({
     },
 
   },
-});
+} satisfies SandboxedPlugin;
 
 function dashboardBlocks(settings: ModernImagesSettings) {
   return [
